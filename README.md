@@ -120,7 +120,7 @@ erDiagram
 - [x] **Secure Login:** Validates credentials via SHA-256 from the database.
 - [x] **Logout:** Safe session closure and returns to Login UI.
 - [x] **Real-time Balance Cards:** Displays available Casual, Sick, and Earned leaves.
-- [x] **Submit Leave Request:** Date validations, input sanitization, and automatic duration check against balance.
+- [x] **Submit Leave Request:** Date validations, calendar picker pop-up, input sanitization, and automatic duration check against balance.
 - [x] **Leave History Table:** Tabular summary of all previous requests showing Status (Pending, Approved, Rejected) and Admin Comments.
 
 ### Administrator Module
@@ -132,6 +132,7 @@ erDiagram
 - [x] **Employee CRUD:** Add new employees, update details, delete profiles (cascading all records).
 - [x] **Search Records:** Search directories instantly by username, name, department, or designation.
 - [x] **Modify Balances:** Modify individual Casual, Sick, and Earned balances for any employee.
+- [x] **Clear Database:** Perform clean database wipes (employees, requests, balances) with double confirmation safety checks from the dashboard header.
 - [x] **System Exports:** Download complete database registers to formatted PDF or Excel.
 
 ---
@@ -149,7 +150,7 @@ This application is built in strict compliance with the internship project guide
 ## 7. Known Limitations
 
 - **Single Active Session per Run:** As a standard Swing desktop client, it runs locally on a single machine connecting to a centralized database.
-- **Local Network Connectivity:** The system assumes direct socket access to the MySQL database on port `3307` and does not implement web API service layers.
+- **Local Network Connectivity:** The system assumes direct socket access to the MySQL database on port `3306` (or configured database port) and does not implement web API service layers.
 - **Predefined Leave Categories:** The database stores balances specifically for Casual, Sick, and Earned leaves. Adding other leave classes requires modifying the `leave_balance` table columns.
 
 ---
@@ -162,13 +163,13 @@ This application is built in strict compliance with the internship project guide
 - **MySQL Database Server:** Running locally (or configured network access).
 
 ### Step 1: Start MySQL and Set Port
-For this project, the JDBC connection is configured to run on port **3307**. Start your database service and ensure it listens on port 3307, or update the credentials inside `DatabaseConnection.java`.
+For this project, the JDBC connection is configured to run on port **3306**. Start your database service and ensure it listens on port 3306, or update the credentials inside `DatabaseConnection.java`.
 
 ### Step 2: Initialize Database Tables
 Execute the SQL schema and seeds from the terminal:
 ```bash
-mysql -u root -h 127.0.0.1 --port=3307 < src/main/resources/db/schema.sql
-mysql -u root -h 127.0.0.1 --port=3307 < src/main/resources/db/seed.sql
+mysql -u root -p -h 127.0.0.1 --port=3306 < src/main/resources/db/schema.sql
+mysql -u root -p -h 127.0.0.1 --port=3306 < src/main/resources/db/seed.sql
 ```
 
 ### Step 3: Build the Application
@@ -196,7 +197,9 @@ mvn exec:java
 ### 9.2. Applying for Leave
 1. On your Dashboard, click the **Apply for Leave** button at the bottom left.
 2. Select your Leave Type (Casual, Sick, or Earned) in the dropdown.
-3. Use the date spinners to select the **Start Date** and **End Date** (format is `yyyy-MM-dd`).
+3. Select your **Start Date** and **End Date**:
+   - You can type the dates manually (format is `yyyy-MM-dd`).
+   - Alternatively, click the calendar icon button (`📅`) next to the fields to select dates from a monthly grid picker.
 4. Enter the reason for the leave in the text area.
 5. Click **Submit Request**.
    * *Note: The system will block submissions if the end date is before the start date, if the reason is empty, or if your requested days exceed your current balance.*
@@ -225,12 +228,18 @@ mvn exec:java
 ### 10.3. Managing Employees
 1. Click the **Manage Employees & Balances** tab.
 2. **To Add an Employee:** Enter all fields in the "Employee Details Editor" form (including password and joining date) and click **Add New**. Their balances will initialize to `0`.
+   - *Note: For the Joining Date field, you can type the date or click the `📅` calendar icon next to it to pick a date.*
 3. **To Search:** Type a keyword in the search bar and press Enter.
 4. **To Update Profile:** Select the employee row, modify details in the form, and click **Update Selected**.
 5. **To Delete:** Select the employee row and click **Delete** (will prompt for confirmation).
 6. **To Edit Balances:** Select the employee row. Their current balances will show in the "Manage Leave Balances" form below. Use the spinners to modify Casual, Sick, or Earned leave quantities and click **Update Leave Balance**.
 
-### 10.4. Exporting Reports
+### 10.4. Resetting the System (Clear Database)
+1. In the Administrator Dashboard, click the **Clear Database** button located in the top-right corner of the window (directly beside the **Logout** button).
+2. The application will prompt you with two sequential security confirmation boxes to prevent accidental data wipes.
+3. Upon double confirmation, the system will completely clear the `employee`, `leave_balance`, and `leave_request` tables. The Administrator credentials are preserved, and the dashboard values immediately update and refresh to 0.
+
+### 10.5. Exporting Reports
 1. Navigate to the **Generate Reports** tab.
 2. Click **Download PDF Report** or **Download Excel Report**.
 3. Choose your destination directory in the file selector dialog and save the file.
